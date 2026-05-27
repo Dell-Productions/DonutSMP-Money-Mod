@@ -1,0 +1,8 @@
+{
+  "text.autoconfig.donutmoneydisplay.title": "Donut Money Display Config",
+  "text.autoconfig.donutmoneydisplay.option.donutApiKey": "DonutSMP API Key",
+  "text.autoconfig.donutmoneydisplay.option.scalePercent": "Scale (%)",
+  "text.autoconfig.donutmoneydisplay.option.showBackground": "Show Background",
+  "text.autoconfig.donutmoneydisplay.option.yOffset": "Y Offset",
+  "text.autoconfig.donutmoneydisplay.option.showMoney": "Show Money"
+}

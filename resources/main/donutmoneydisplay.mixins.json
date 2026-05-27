@@ -1,0 +1,15 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "com.donutmoney.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "EntityRendererMixin",
+    "EntityRenderStateMixin",
+    "AvatarRendererMixin",
+    "AvatarRenderStateMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
