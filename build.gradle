@@ -1,0 +1,109 @@
+plugins {
+    id 'fabric-loom' version '1.14-SNAPSHOT'
+    id 'maven-publish'
+}
+
+def mcVersion = (project.findProperty("minecraft_version") ?: "1.21.5").toString()
+def fabricApiVersion = (project.findProperty("fabric_api_version") ?: "0.123.0+1.21.5").toString()
+def modMenuVersion = (project.findProperty("modmenu_version") ?: "13.0.2").toString()
+def fabricLoaderVersion = (project.findProperty("fabric_loader_version") ?: "0.18.4").toString()
+
+version = project.properties["mod_version"] ?: "1.4.0"
+group = 'com.donutmoney'
+
+def versionAtLeast(String v, String min) {
+    def pa = String.valueOf(v ?: '').split('\\+')[0].split('\\.').collect { it.isInteger() ? it.toInteger() : 0 }
+    def pb = String.valueOf(min ?: '').split('\\+')[0].split('\\.').collect { it.isInteger() ? it.toInteger() : 0 }
+    def n = Math.max(pa.size(), pb.size())
+    for (int i = 0; i < n; i++) {
+        def a = i < pa.size() ? pa[i] : 0
+        def b = i < pb.size() ? pb[i] : 0
+        if (a != b) return a > b
+    }
+    return true
+}
+
+def useRenderState = versionAtLeast(mcVersion, "1.21.4")
+def useAvatarRenderer = versionAtLeast(mcVersion, "1.21.9")
+def stateMixinList = useAvatarRenderer
+    ? '    "EntityRendererMixin",\n    "EntityRenderStateMixin",\n    "AvatarRendererMixin",\n    "AvatarRenderStateMixin"'
+    : '    "EntityRendererMixin",\n    "EntityRenderStateMixin",\n    "PlayerRendererMixin",\n    "PlayerRenderStateMixin"'
+def mixinList = useRenderState ? stateMixinList : '    "legacy.EntityRendererLegacyMixin"'
+
+base {
+    archivesName = 'minecraft-money-mod'
+}
+
+repositories {
+    maven { url "https://maven.fabricmc.net/" }
+    maven { url "https://maven.shedaniel.me/" }
+    maven { url "https://maven.terraformersmc.com/releases/" }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${mcVersion}"
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${fabricLoaderVersion}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabricApiVersion}"
+    modCompileOnly "com.terraformersmc:modmenu:${modMenuVersion}"
+}
+
+sourceSets {
+    main {
+        java {
+            if (useRenderState) {
+                exclude "com/donutmoney/mixin/legacy/**"
+                if (useAvatarRenderer) {
+                    exclude "com/donutmoney/mixin/PlayerRendererMixin.java"
+                    exclude "com/donutmoney/mixin/PlayerRenderStateMixin.java"
+                } else {
+                    exclude "com/donutmoney/mixin/AvatarRendererMixin.java"
+                    exclude "com/donutmoney/mixin/AvatarRenderStateMixin.java"
+                }
+            } else {
+                exclude "com/donutmoney/mixin/EntityRendererMixin.java"
+                exclude "com/donutmoney/mixin/EntityRenderStateMixin.java"
+                exclude "com/donutmoney/mixin/PlayerRendererMixin.java"
+                exclude "com/donutmoney/mixin/AvatarRendererMixin.java"
+                exclude "com/donutmoney/mixin/PlayerRenderStateMixin.java"
+                exclude "com/donutmoney/mixin/AvatarRenderStateMixin.java"
+            }
+        }
+    }
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "minecraft_version", ">=1.21"
+    inputs.property "loader_version", ">=0.16.0"
+    inputs.property "use_render_state", useRenderState.toString()
+    inputs.property "mixin_list", mixinList
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version,
+               "minecraft_version": ">=1.21",
+               "loader_version": ">=0.16.0"
+    }
+    filesMatching("donutmoneydisplay.mixins.json") {
+        expand "mixin_list": mixinList
+    }
+    exclude "donutmoneydisplay.mixins.state.json"
+    exclude "donutmoneydisplay.mixins.legacy.json"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}
+
+java {
+    withSourcesJar()
+
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+jar {
+    from("LICENSE") {
+        rename { "${it}_${project.base.archivesName.get()}" }
+    }
+}
