@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "donutmoneydisplay",
+  "version": "${version}",
+  "name": "DonutSMP Money Display Mod",
+  "description": "Displays player money above their nametags.",
+  "icon": "icon.png",
+  "environment": "client",
+  "mixins": [
+    "donutmoneydisplay.mixins.json"
+  ],
+  "entrypoints": {
+    "client": [
+      "com.donutmoney.client.DonutMoneyClient"
+    ],
+    "modmenu": [
+      "com.donutmoney.client.DonutMoneyModMenu"
+    ]
+  },
+  "depends": {
+    "fabricloader": "${loader_version}",
+    "minecraft": "${minecraft_version}"
+  }
+}
